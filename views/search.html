@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Search</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script  type="text/javascript" src="typeahead.bundle.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    $('input.typeahead').typeahead({
+        name: 'items',
+        remote: 'http://localhost:4000/search?key=%QUERY',
+        limit: 100
+    });
+});
+</script>
+
+</head>
+<body>
+   <div class="page-header">
+        
+    </div>
+    <div class="bs-example">
+        <input type="text" name="typeahead" class="typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="">
+    </div>
+</body>
+</html>

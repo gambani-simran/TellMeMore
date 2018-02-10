@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8">
+    <title>Communication using sockets</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  </head>
+  <body>
+    <div id="chat">
+      <div id="chat-window">
+        <div id="output">
+
+        </div>
+        <input type="text" id="handle" placeholder="Handle">
+        <input type="text" id="message" placeholder="Message">
+        <button type="button" id="send" name="button">Send</button>
+      </div>
+    </div>
+    <script>
+    var socket=io.connect('http://localhost:4000');
+
+    var message=document.getElementById('message');
+        handle=document.getElementById('handle');
+        btn=document.getElementById('send');
+        output=document.getElementById('output');
+
+    btn.addEventListener('click',function(){
+      socket.emit('chat',{
+        message:message.value,
+        handle:handle.value
+      });
+    });
+
+    socket.on('chat',function(data){
+      output.innerHTML+='<p><strong>'+data.handle+':'+'</strong>'+data.message+'</p>';
+    });
+
+    </script>
+
+  </body>
+
+</html>
