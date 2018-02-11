@@ -1,6 +1,7 @@
 var express=require('express');
 var mysql=require('mysql');
 var socket=require('socket.io');
+var bodyParser = require('body-parser'); 
 
 //App setup
 var app=express();
@@ -10,6 +11,10 @@ app.set('views',__dirname + '/views');
 app.use(express.static(__dirname + '/js'));
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
+
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
 
 //Static files
 app.use(express.static('public'));
@@ -38,6 +43,15 @@ app.get('/search',function(req,res){
 			data.push(rows[i].Title);
 		}
 		res.send(JSON.stringify(data));
+	});
+});
+
+//get item data
+app.post('/description',function(req,res){
+	conn.query("SELECT * FROM metadata WHERE Title='"+req.body.item+"'",
+	function(err, rows, fields) {
+		if (err) throw err;
+		res.send(rows[0]);
 	});
 });
 

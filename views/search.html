@@ -3,18 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <title>Search</title>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script  type="text/javascript" src="typeahead.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.9.3/typeahead.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
     $('input.typeahead').typeahead({
         name: 'items',
         remote: 'http://localhost:4000/search?key=%QUERY',
-        limit: 100
+        limit: 100,
     });
+    $('input').on('typeahead:selected', function (e, datum) {
+        console.log(datum.value);
+        $.ajax({
+            type: "POST",
+            url: "/description",
+            data: {'item': datum.value},
+            success: function(data){
+                //console.log(data.LongDescription);
+                $("#desc").html(data.LongDescription);
+            }
+        });
+    });
+    
 });
 </script>
-
+<style type="text/css">
+.bs-example{
+  position: relative;
+  margin: 100px;
+}
+.typeahead, .tt-query, .tt-hint {
+  border: 2px solid #CCCCCC;
+  font-size: 24px;
+  height: 30px;
+  line-height: 30px;
+  outline: medium none;
+  padding: 8px 12px;
+  width: 396px;
+}
+.typeahead {
+  background-color: #FFFFFF;
+}
+.typeahead:focus {
+  border: 2px solid #0097CF;
+}
+.tt-query {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+}
+.tt-hint {
+  color: #999999;
+}
+.tt-dropdown-menu {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 12px;
+  padding: 8px 0;
+  width: 422px;
+}
+.tt-suggestion {
+  font-size: 24px;
+  line-height: 24px;
+  padding: 3px 20px;
+}
+.tt-suggestion.tt-is-under-cursor {
+  background-color: #0097CF;
+  color: #FFFFFF;
+}
+.tt-suggestion p {
+  margin: 0;
+}
+</style>
 </head>
 <body>
    <div class="page-header">
@@ -23,5 +84,6 @@ $(document).ready(function(){
     <div class="bs-example">
         <input type="text" name="typeahead" class="typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="">
     </div>
+    <p id="desc"></p>
 </body>
 </html>
