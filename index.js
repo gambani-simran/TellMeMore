@@ -3,6 +3,10 @@ var mysql=require('mysql');
 var socket=require('socket.io');
 var bodyParser = require('body-parser'); 
 
+var google = require('google')
+google.resultsPerPage = 25
+
+
 //App setup
 var app=express();
 
@@ -54,6 +58,40 @@ app.post('/description',function(req,res){
 		res.send(rows[0]);
 	});
 });
+
+//get keyword searches
+app.post('/explore',function(req,res){
+	conn.query("SELECT Keywords FROM metadata WHERE Title='"+req.body.item+"'",
+	function(err, rows, fields) {
+		if (err) throw err;
+		var allWords = rows[0].Keywords;
+		var arr = allWords.split(',');	//array
+		console.log(arr.length);
+		//var nextCounter = 0
+		for(i=0;i<arr.length;i++)
+		{
+			console.log(arr[i]);
+			google(arr[i], function (err, res){
+				if (err) console.error(err)
+				console.log(res.links.length);
+				for (var i = 0; i < 10; ++i) {
+					var link = res.links[i];
+					console.log(link.title + ' - ' + link.href)
+					console.log(link.description + "\n")
+				}
+				/*if (nextCounter < 4) {
+					nextCounter += 1
+					if (res.next) res.next()
+				}*/
+			});
+			//data.push(rows[i].Title);
+		}
+
+		//res.send()
+		
+	});
+});
+
 
 var server=app.listen(4000,function(){
   console.log('Listening to  request on port 4000');
