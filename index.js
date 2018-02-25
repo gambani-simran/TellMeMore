@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 var google = require('google')
 google.resultsPerPage = 25
 
+var speak = require('speakeasy-nlp');
 
 //App setup
 var app=express();
@@ -92,6 +93,14 @@ app.post('/explore',function(req,res){
 	});
 });
 
+
+//nlp 
+console.log(speak.classify("send me a sari"));
+//search subject or last token in Title*, Material*, Provenance*, 
+//ShortDescription, LongDescription, Type*, Collection*, Keywords, Religion*	//* means single word
+/*str = ShortDescription
+str.search(token) > 0 then found
+return first result's image*/
 
 var server=app.listen(4000,function(){
   console.log('Listening to  request on port 4000');
