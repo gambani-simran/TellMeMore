@@ -1,43 +1,242 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <link rel="stylesheet" href="styles.css">
-    <meta charset="utf-8">
-    <title>Communication using sockets</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-  </head>
-  <body>
-    <div id="chat">
-      <div id="chat-window">
-        <div id="output">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Search</title>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.9.3/typeahead.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    var search = "";
+    var displayStatus;
+    $('input.typeahead').typeahead({
+        name: 'items',
+        remote: 'http://localhost:4000/search?key=%QUERY',
+        limit: 100,
+    });
+    $('input').on('typeahead:selected', function (e, datum) {
+        console.log(datum.value);
+        search = search + datum.value;
+        $.ajax({
+            type: "POST",
+            url: "/description",
+            data: {'item': datum.value},
+            success: function(data){
+                //console.log(data.LongDescription);
+                $("#desc").html(data.LongDescription);
+                $("#mat").html(data.Material);
+                $("#period").html(data.Period);
+                $("#ay").html(data.AcquisitionYear);
+                $("#prov").html(data.Provenance);
+                $("#type").html(data.Type);
+                $("#religion").html(data.Religion);
+                displayStatus = data.DisplayStatus;
+                map(displayStatus);
+            }
+        });
+    });
 
-        </div>
-        <input type="text" id="handle" placeholder="Handle">
-        <input type="text" id="message" placeholder="Message">
-        <button type="button" id="send" name="button">Send</button>
-      </div>
-    </div>
-    <script>
-    var socket=io.connect('http://localhost:4000');
+    $(".container-0").hide();
+      $(".container-1").hide();
+      $(".container-2").hide();
 
-    var message=document.getElementById('message');
-        handle=document.getElementById('handle');
-        btn=document.getElementById('send');
-        output=document.getElementById('output');
+      var floorMap={dorabtatagallery:"s1",armsgallery:"s2",ratantatagallery:"s3",japaneseartgallery:"s4",chineseartgallery:"s4",europeandecorativeartgallery:"s5",textileartgallery:"s6",krishnagallery:"f1",miniaturepaintinggallery:"f2",himalayanartgallery:"f3",firstfloorcircle:"f4",indianmetalwareanddecorativeartgallery:"f5",keygallery:"g1",mammalgallery:"g2"};
 
-    btn.addEventListener('click',function(){
-      socket.emit('chat',{
-        message:message.value,
-        handle:handle.value
+      var second = {s4:"70px;126px;20px;162px;-162px;-20px",s3:"53px;116px;121px;276px;-276px;-121px",s1:"53px;116px;121px;59px;-59px;-121px",s5:"30px;40px;92px;270px;-270px;-92px",s2:"50px;100px;200px;150px;-150px;-200px",s6:"143px;52px;20px;502px;-502px;-20px"};
+
+      var first = {f1:"21px;107px;72px;111px;-111px;-72px",f2:"45px;107px;138px;12px;-12px;-138px",f3:"42px;108px;138px;278px;-278px;-138px",f4:"101px;100px;111px;181px;-181px;-111px",f5:"30px;106px;113px;278px;-278px;-113px"};
+
+      var ground = {g1:"100px;83px;118px;200px;-200px;-118px",g2:"60px;175px;52px;514px;-514px;-52px"};
+
+      function map(displayStatus){
+        console.log(displayStatus);
+        var toMap = displayStatus;
+        var value = toMap.replace(/\s/g,'').toLowerCase();
+        value = value.slice(10);
+        for(key in floorMap){
+          if(key==value){
+            console.log(floorMap[key][0]);
+            if(floorMap[key][0]=="s"){
+              $(".container-2").show();
+              data=second[floorMap[key]];
+            }
+            else if(floorMap[key][0]=="f"){
+              $(".container-1").show();
+              data=first[floorMap[key]];
+            }
+            else{
+              $(".container-0").show();
+              data=ground[floorMap[key]];
+            }
+
+            var array=data.split(';');
+            console.log(array);
+            var n=array.length;
+            var bp=array[4]+" "+array[5];
+            $(".highlight-region").css({"height":array[0],"width":array[1],"top":array[2],"left":array[3],"background-position":bp});
+            
+            break;  
+          }
+        }
+      }
+      
+
+    $("#explore").click(function(){
+        console.log("get more info for " + search);
+        $.ajax({
+            type: "POST",
+            url: "/explore",
+            data: {'item': search},
+            success: function(data){
+                //console.log(data.LongDescription);
+                //$("#desc").html(data.LongDescription);
+            }
+        });
+    });
+    $("#send").click(function(){
+        console.log("send me "+document.getElementById("sendme").value);
+        $.ajax({
+            type: "POST",
+            url: "/sendme",
+            data: {'object': document.getElementById("sendme").value},
+            success: function(data){
+                console.log(data.Filename);
+                
+                 // create image
+                 
+                 var img = new Image();
+
+                 // add src attribute                                   
+                 img.src = data.Filename;
+
+                 // when image is loaded, add it to div
+                 img.addEventListener("load", function(){
+                     document.getElementById("i").appendChild(this);
+                 });
+                //$("#desc").html(data.LongDescription);*/
+                  
+        }
+
       });
+
     });
 
-    socket.on('chat',function(data){
-      output.innerHTML+='<p><strong>'+data.handle+':'+'</strong>'+data.message+'</p>';
-    });
+   
+});
+</script>
+<style type="text/css">
+.bs-example{
+  position: relative;
+  margin: 100px;
+}
+.typeahead, .tt-query, .tt-hint {
+  border: 2px solid #CCCCCC;
+  font-size: 24px;
+  height: 30px;
+  line-height: 30px;
+  outline: medium none;
+  padding: 8px 12px;
+  width: 396px;
+}
+.typeahead {
+  background-color: #FFFFFF;
+}
+.typeahead:focus {
+  border: 2px solid #0097CF;
+}
+.tt-query {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+}
+.tt-hint {
+  color: #999999;
+}
+.tt-dropdown-menu {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 12px;
+  padding: 8px 0;
+  width: 422px;
+}
+.tt-suggestion {
+  font-size: 24px;
+  line-height: 24px;
+  padding: 3px 20px;
+}
+.tt-suggestion.tt-is-under-cursor {
+  background-color: #0097CF;
+  color: #FFFFFF;
+}
+.tt-suggestion p {
+  margin: 0;
+}
 
-    </script>
+/*map*/
+.container{
+      position: relative;
+    }
+    .container-0 div {
+        position:absolute;
+        background-image:url(/ground.jpg) ;
+        background-repeat: no-repeat;
+    }
+    .container-1 div {
+        position:absolute;
+        background-image:url(/first.jpg) ;
+        background-repeat: no-repeat;
+    }
+    .container-2 div {
+        position:absolute;
+        background-image:url(/second.jpg) ;
+        background-repeat: no-repeat;
+    }
+    .floor {
+        opacity:0.5;
+        height:290px;
+      width:770px;
+    }
+    div.highlight-region{
+        margin-top:20px;
+        border: 3px solid white;
+    }
+</style>
+</head>
+<body>
+   <div class="page-header">
+        
+    </div>
+    <div class="bs-example">
+        <input type="text" name="typeahead" class="typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="">
+        <input type="text" name="sendme" id="sendme" autocomplete="off" spellcheck="false" placeholder="Send me a ....">
+        <input type="submit" class="" value="Send" id="send">
+        <div id="i"></div>
 
-  </body>
-
+    </div>
+    <p id="desc"></p>
+    <p id="mat"></p>
+    <p id="period"></p>
+    <p id="ay"></p>
+    <p id="prov"></p>
+    <p id="type"></p>
+    <p id="religion"></p>
+    <input type="submit" class="" value="Explore" id="explore">
+    <!--<input id="myFileInput" type="file" accept="image/*;capture=camera">-->
+    <div class="container-0">
+    <div class="floor"></div>
+    <div class="highlight-region"></div>
+    
+  </div>
+  <div class="container-1">
+    <div class="floor"></div>
+    <div class="highlight-region"></div>
+    
+  </div>
+  <div class="container-2">
+    <div class="floor"></div>
+    <div class="highlight-region"></div>
+    
+  </div>
+</body>
 </html>

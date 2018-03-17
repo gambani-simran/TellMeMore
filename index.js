@@ -12,7 +12,7 @@ var speak = require('speakeasy-nlp');
 var app=express();
 
 //look for ui files in views
-app.set('views',__dirname + '/views');
+//app.set('views',__dirname + '/views');
 app.use(express.static(__dirname + '/js'));
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
@@ -34,7 +34,7 @@ var conn = mysql.createConnection({
 conn.connect();
 
 app.get('/',function(req,res){
-res.render('search.html');
+res.render('index.html');
 });
 
 app.get('/search',function(req,res){
@@ -69,24 +69,34 @@ app.post('/explore',function(req,res){
 		var arr = allWords.split(',');	//array
 		console.log(arr.length);
 		//var nextCounter = 0
-		for(i=0;i<arr.length;i++)
+		result = [];
+		for(i=0;i<arr.length;i++)	//iterate over all keywords
 		{
 			console.log(arr[i]);
 			google(arr[i], function (err, res){
 				if (err) console.error(err)
 				console.log(res.links.length);
-				for (var i = 0; i < 10; ++i) {
+				console.log(res.links[0]);
+				result.push(res.links[0]);
+				/*
+				for (var i = 0; i < 5; ++i) {
 					var link = res.links[i];
 					console.log(link.title + ' - ' + link.href)
-					console.log(link.description + "\n")
-				}
+					//result.push({t: link.title, l: link.href, d: link.description});
+				}*/
+				console.log("done");
+				
 				/*if (nextCounter < 4) {
 					nextCounter += 1
 					if (res.next) res.next()
 				}*/
 			});
+			console.log("ji");
 			//data.push(rows[i].Title);
 		}
+		console.log("uo");
+		//res.send(res.links[0]);
+		
 
 		//res.send()
 		
@@ -94,8 +104,35 @@ app.post('/explore',function(req,res){
 });
 
 
-//nlp 
-console.log(speak.classify("send me a sari"));
+//nlp
+app.post('/sendme',function(req,res){
+	
+conn.query("SELECT * FROM metadata WHERE Title LIKE '"+req.body.object+"%' OR Material LIKE '"+req.body.object+"%' OR Provenance LIKE '"+req.body.object+"%' OR Type LIKE '"+req.body.object+"%' OR Collection LIKE '"+req.body.object+"%' OR Religion LIKE '"+req.body.object+"%'",
+	function(err, rows, fields) {
+		if (err) throw err;
+		if(rows[0])
+		{
+			console.log(rows[0]);
+			res.send(rows[0]);
+		}
+		else
+		{
+
+			conn.query("SELECT Filename FROM metadata WHERE MATCH(ShortDescription,LongDescription,Keywords) AGAINST ('"+req.body.object+"' IN NATURAL LANGUAGE MODE)",
+				function(err, rows, fields) {
+					if (err) throw err;
+					
+					console.log(rows[0]);
+					res.send(rows[0]);
+				});
+		}
+	});
+});
+
+/*
+console.log(speak.classify("send me a painting").tokens[3]);
+var subj = speak.classify("send me a painting").tokens[3];
+*/
 //search subject or last token in Title*, Material*, Provenance*, 
 //ShortDescription, LongDescription, Type*, Collection*, Keywords, Religion*	//* means single word
 /*str = ShortDescription
