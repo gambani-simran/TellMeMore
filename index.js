@@ -12,7 +12,7 @@ var speak = require('speakeasy-nlp');
 var app=express();
 
 //look for ui files in views
-//app.set('views',__dirname + '/views');
+app.set('views',__dirname + '/');
 app.use(express.static(__dirname + '/js'));
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
