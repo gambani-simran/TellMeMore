@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Search</title>
+<title>Tell me more</title>
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+
+
+
+
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.9.3/typeahead.min.js"></script>
 <script type="text/javascript">
@@ -24,13 +30,21 @@ $(document).ready(function(){
             url: "/description",
             data: {'item': datum.value},
             success: function(data){
-                $("#desc").html(data.LongDescription);
-                $("#mat").html(data.Material);
-                $("#period").html(data.Period);
-                $("#ay").html(data.AcquisitionYear);
-                $("#prov").html(data.Provenance);
-                $("#type").html(data.Type);
-                $("#religion").html(data.Religion);
+                $("#desc").html("<h4>Description:</h4>"+data.LongDescription);
+                $("#mat").html("<h4>Material used:</h4>"+data.Material);
+                $("#period").html("<h4>Period:</h4>"+data.Period);
+                $("#ay").html("<h4>Acquisition Year:</h4>"+data.AcquisitionYear);
+                $("#prov").html("<h4>Provenance:</h4>"+data.Provenance);
+                $("#type").html("<h4>Type:</h4>"+data.Type);
+                $("#religion").html("<h4>Religion:</h4>"+data.Religion);
+                /*$("#image").html('<img src="'+data.Filename+'">');*/
+                
+                var img = new Image();                                
+                img.src = "/"+data.Filename;
+                img.height="100";
+                img.width="100";
+                document.getElementById('image').appendChild(img);
+                
                 displayStatus = data.DisplayStatus;
                 map(displayStatus);
                 keywords(data.Keywords);
@@ -47,7 +61,7 @@ $(document).ready(function(){
         {
             disp = disp + "<input type='submit' id='key_"+i+"' value='"+keyarr[i]+"'>";
         }
-        $("#keywords").html(disp);
+        $("#keywords").html("<p>Know more aboutt: "+disp+"</p>");
         for(var i=0; i < keyarr.length; i++)
         {
             document.getElementById("key_"+i).addEventListener("click", getSearch, false);
@@ -92,7 +106,7 @@ $(document).ready(function(){
       $(".container-1").hide();
       $(".container-2").hide();
 
-      var floorMap={dorabtatagallery:"s1",armsgallery:"s2",ratantatagallery:"s3",japaneseartgallery:"s4",chineseartgallery:"s4",europeandecorativeartgallery:"s5",textileartgallery:"s6",krishnagallery:"f1",miniaturepaintinggallery:"f2",himalayanartgallery:"f3",firstfloorcircle:"f4",indianmetalwareanddecorativeartgallery:"f5",keygallery:"g1",mammalgallery:"g2"};
+      var floorMap={dorabtatagallery:"s1",armsgallery:"s2",ratantatagallery:"s3",japaneseartgallery:"s4",chineseartgallery:"s4",europeandecorativeartgallery:"s5",textileartgallery:"s6",krishnagallery:"f1",miniaturepaintinggallery:"f2",himalayanartgallery:"f3",firstfloorcircle:"f4",indianmetalanddecorativeartgallery:"f5",keygallery:"g1",mammalgallery:"g2"};
 
       var second = {s4:"70px;126px;20px;162px;-162px;-20px",s3:"53px;116px;121px;276px;-276px;-121px",s1:"53px;116px;121px;59px;-59px;-121px",s5:"30px;40px;92px;270px;-270px;-92px",s2:"50px;100px;200px;150px;-150px;-200px",s6:"143px;52px;20px;502px;-502px;-20px"};
 
@@ -116,7 +130,7 @@ $(document).ready(function(){
               $(".container-1").show();
               data=first[floorMap[key]];
               }
-              else{
+              else if(floorMap[key][0]=="g"){
               $(".container-0").show();
               data=ground[floorMap[key]];
               }
@@ -141,9 +155,14 @@ $(document).ready(function(){
             data: {'object': document.getElementById("sendme").value},
             success: function(data){
               console.log(data.Filename); //image link
+              $("#imgTitle").html("<p>"+data.Title+"</p><p>"+data.LongDescription+"</p>");
               var img = new Image();                                
               img.src = data.Filename;
+              img.height = "400";
+              img.width = "400";
+
               img.addEventListener("load", function(){
+
               document.getElementById("i").appendChild(this);
               });
         }
@@ -203,6 +222,7 @@ $(document).ready(function(){
 }
 
 /*map*/
+
 .container{
       position: relative;
     }
@@ -227,22 +247,28 @@ $(document).ready(function(){
       width:770px;
     }
     div.highlight-region{
-        margin-top:20px;
+        position: relative;
         border: 3px solid white;
+    }
+    #image{
+      position: relative;
     }
 </style>
 </head>
 <body>
-   <div class="page-header">
+    <div class="page-header">
         
     </div>
     <div class="bs-example">
         <input type="text" name="typeahead" class="typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="">
-        <input type="text" name="sendme" id="sendme" autocomplete="off" spellcheck="false" placeholder="Send me a ....">
+
+        Send me Art!<input type="text" name="sendme" id="sendme" autocomplete="off" spellcheck="false" placeholder="Send me a ....">
         <input type="submit" class="" value="Send" id="send">
+        <p id="imgTitle"></p>
         <div id="i"></div>
 
     </div>
+    <div id="image" style="height: 200px;width: 200px;"></div>
     <p id="desc"></p>
     <p id="mat"></p>
     <p id="period"></p>
@@ -250,19 +276,15 @@ $(document).ready(function(){
     <p id="prov"></p>
     <p id="type"></p>
     <p id="religion"></p>
-    <p>Know more about</p>
+    
     <div id="keywords"></div>
     <div id="links"></div>
-    
-    
-  
-    <!--<input id="myFileInput" type="file" accept="image/*;capture=camera">-->
     <div class="container-0">
     <div class="floor"></div>
     <div class="highlight-region"></div>
     
-  </div>
-  <div class="container-1">
+  </div> 
+ <div class="container-1">
     <div class="floor"></div>
     <div class="highlight-region"></div>
     
@@ -271,7 +293,19 @@ $(document).ready(function(){
     <div class="floor"></div>
     <div class="highlight-region"></div>
     
-  </div>
+  </div> 
+
+    
+    
+    
   
+    <!-- <input id="myFileInput" type="file" accept="image/*;capture=camera"> -->
+    
+
+
+
+
+
+   
 </body>
 </html>

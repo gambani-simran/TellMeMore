@@ -76,7 +76,7 @@ conn.query("SELECT * FROM metadata WHERE Title LIKE '"+req.body.object+"%' OR Ma
 		else
 		{
 
-			conn.query("SELECT Filename FROM metadata WHERE MATCH(ShortDescription,LongDescription,Keywords) AGAINST ('"+req.body.object+"' IN NATURAL LANGUAGE MODE)",
+			conn.query("SELECT Title, LongDescription, Filename FROM metadata WHERE MATCH(ShortDescription,LongDescription,Keywords) AGAINST ('"+req.body.object+"' IN NATURAL LANGUAGE MODE)",
 				function(err, rows, fields) {
 					if (err) throw err;
 					console.log(rows[0]);
@@ -90,7 +90,7 @@ conn.query("SELECT * FROM metadata WHERE Title LIKE '"+req.body.object+"%' OR Ma
 app.post('/explore',function(req,res){
 	var link;
 	var result = [];
-	var nextCounter = 0
+	//var nextCounter = 0
 	google(req.body.item, function (err, res){
 		if (err) console.error(err)
 			console.log(res.links);
@@ -102,14 +102,14 @@ app.post('/explore',function(req,res){
 			//console.log(link.description + "\n")
 		}
 		
-		if (nextCounter < 4) {
+		/*if (nextCounter < 4) {
 			nextCounter += 1
 			if (res.next) res.next()
-		}
+		}*/
 	
 	})
 	//wait till all links scraped
-	delay(15000)
+	delay(5000)
     .then(() => {
         res.send(result);
     });
