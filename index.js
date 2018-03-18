@@ -3,6 +3,7 @@ var mysql=require('mysql');
 var socket=require('socket.io');
 var bodyParser = require('body-parser'); 
 
+const delay = require('delay');
 var google = require('google')
 google.resultsPerPage = 25
 
@@ -37,6 +38,7 @@ app.get('/',function(req,res){
 res.render('index.html');
 });
 
+//search for article
 app.get('/search',function(req,res){
 	conn.query('SELECT Title from metadata where Title like "%'+req.query.key+'%"',
 	function(err, rows, fields) {
@@ -51,7 +53,7 @@ app.get('/search',function(req,res){
 	});
 });
 
-//get item data
+//get art item data
 app.post('/description',function(req,res){
 	conn.query("SELECT * FROM metadata WHERE Title='"+req.body.item+"'",
 	function(err, rows, fields) {
@@ -60,51 +62,7 @@ app.post('/description',function(req,res){
 	});
 });
 
-//get keyword searches
-app.post('/explore',function(req,res){
-	conn.query("SELECT Keywords FROM metadata WHERE Title='"+req.body.item+"'",
-	function(err, rows, fields) {
-		if (err) throw err;
-		var allWords = rows[0].Keywords;
-		var arr = allWords.split(',');	//array
-		console.log(arr.length);
-		//var nextCounter = 0
-		result = [];
-		for(i=0;i<arr.length;i++)	//iterate over all keywords
-		{
-			console.log(arr[i]);
-			google(arr[i], function (err, res){
-				if (err) console.error(err)
-				console.log(res.links.length);
-				console.log(res.links[0]);
-				result.push(res.links[0]);
-				/*
-				for (var i = 0; i < 5; ++i) {
-					var link = res.links[i];
-					console.log(link.title + ' - ' + link.href)
-					//result.push({t: link.title, l: link.href, d: link.description});
-				}*/
-				console.log("done");
-				
-				/*if (nextCounter < 4) {
-					nextCounter += 1
-					if (res.next) res.next()
-				}*/
-			});
-			console.log("ji");
-			//data.push(rows[i].Title);
-		}
-		console.log("uo");
-		//res.send(res.links[0]);
-		
-
-		//res.send()
-		
-	});
-});
-
-
-//nlp
+//send me art
 app.post('/sendme',function(req,res){
 	
 conn.query("SELECT * FROM metadata WHERE Title LIKE '"+req.body.object+"%' OR Material LIKE '"+req.body.object+"%' OR Provenance LIKE '"+req.body.object+"%' OR Type LIKE '"+req.body.object+"%' OR Collection LIKE '"+req.body.object+"%' OR Religion LIKE '"+req.body.object+"%'",
@@ -121,13 +79,43 @@ conn.query("SELECT * FROM metadata WHERE Title LIKE '"+req.body.object+"%' OR Ma
 			conn.query("SELECT Filename FROM metadata WHERE MATCH(ShortDescription,LongDescription,Keywords) AGAINST ('"+req.body.object+"' IN NATURAL LANGUAGE MODE)",
 				function(err, rows, fields) {
 					if (err) throw err;
-					
 					console.log(rows[0]);
 					res.send(rows[0]);
 				});
 		}
 	});
 });
+
+//get keyword searches
+app.post('/explore',function(req,res){
+	var link;
+	var result = [];
+	var nextCounter = 0
+	google(req.body.item, function (err, res){
+		if (err) console.error(err)
+			console.log(res.links);
+		
+		for (var i = 0; i < res.links.length; ++i) {
+			link = res.links[i];
+			result.push(link);
+			console.log(link.title + ' - ' + link.href)
+			//console.log(link.description + "\n")
+		}
+		
+		if (nextCounter < 4) {
+			nextCounter += 1
+			if (res.next) res.next()
+		}
+	
+	})
+	//wait till all links scraped
+	delay(15000)
+    .then(() => {
+        res.send(result);
+    });
+	
+});
+
 
 /*
 console.log(speak.classify("send me a painting").tokens[3]);

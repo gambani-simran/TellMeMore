@@ -15,6 +15,7 @@ $(document).ready(function(){
         remote: 'http://localhost:4000/search?key=%QUERY',
         limit: 100,
     });
+    //search typeahead
     $('input').on('typeahead:selected', function (e, datum) {
         console.log(datum.value);
         search = search + datum.value;
@@ -23,7 +24,6 @@ $(document).ready(function(){
             url: "/description",
             data: {'item': datum.value},
             success: function(data){
-                //console.log(data.LongDescription);
                 $("#desc").html(data.LongDescription);
                 $("#mat").html(data.Material);
                 $("#period").html(data.Period);
@@ -33,11 +33,62 @@ $(document).ready(function(){
                 $("#religion").html(data.Religion);
                 displayStatus = data.DisplayStatus;
                 map(displayStatus);
+                keywords(data.Keywords);
             }
         });
     });
 
-    $(".container-0").hide();
+    //display keywords to explore more
+    function keywords(keys)
+    {
+        var keyarr = keys.split(',');  //array
+        var disp = "";
+        for(var i=0; i < keyarr.length; i++)
+        {
+            disp = disp + "<input type='submit' id='key_"+i+"' value='"+keyarr[i]+"'>";
+        }
+        $("#keywords").html(disp);
+        for(var i=0; i < keyarr.length; i++)
+        {
+            document.getElementById("key_"+i).addEventListener("click", getSearch, false);
+        }
+      
+    }
+
+    //scrape google for keyword clicked
+    function getSearch(zEvent)
+    {
+        var search  = this.getAttribute("value");
+        console.log("get more info for " + search);
+        $.ajax({
+            type: "POST",
+            url: "/explore",
+            data: {'item': search},
+            success: function(data){
+                console.log("in");
+                console.log(data);
+                displayLinks(data); //display google search links
+            }
+        });
+    }
+
+    function displayLinks(data)
+    {
+      console.log("in disp");
+      console.log(data[0].link);
+      var links = "";
+      for(var i =0; i<10; i++){
+        
+          links = links + "<p>Title: "+data[i].title+"</p><p>Link: <a href="+data[i].link+">"+data[i].link+"</a></p>";
+        
+        
+      }
+      $("#links").html(links);
+    }
+
+      //map location for the article
+
+      $(".container-0").hide();
       $(".container-1").hide();
       $(".container-2").hide();
 
@@ -50,50 +101,38 @@ $(document).ready(function(){
       var ground = {g1:"100px;83px;118px;200px;-200px;-118px",g2:"60px;175px;52px;514px;-514px;-52px"};
 
       function map(displayStatus){
-        console.log(displayStatus);
-        var toMap = displayStatus;
-        var value = toMap.replace(/\s/g,'').toLowerCase();
-        value = value.slice(10);
-        for(key in floorMap){
-          if(key==value){
-            console.log(floorMap[key][0]);
-            if(floorMap[key][0]=="s"){
+          console.log(displayStatus);
+          var toMap = displayStatus;
+          var value = toMap.replace(/\s/g,'').toLowerCase();
+          value = value.slice(10);
+          for(key in floorMap){
+            if(key==value){
+              console.log(floorMap[key][0]);
+              if(floorMap[key][0]=="s"){
               $(".container-2").show();
               data=second[floorMap[key]];
-            }
-            else if(floorMap[key][0]=="f"){
+              }
+              else if(floorMap[key][0]=="f"){
               $(".container-1").show();
               data=first[floorMap[key]];
-            }
-            else{
+              }
+              else{
               $(".container-0").show();
               data=ground[floorMap[key]];
-            }
+              }
 
-            var array=data.split(';');
-            console.log(array);
-            var n=array.length;
-            var bp=array[4]+" "+array[5];
-            $(".highlight-region").css({"height":array[0],"width":array[1],"top":array[2],"left":array[3],"background-position":bp});
-            
-            break;  
+              var array=data.split(';');
+              console.log(array);
+              var n=array.length;
+              var bp=array[4]+" "+array[5];
+              $(".highlight-region").css({"height":array[0],"width":array[1],"top":array[2],"left":array[3],"background-position":bp});
+
+              break;  
+            }
           }
-        }
-      }
-      
+      }   
 
-    $("#explore").click(function(){
-        console.log("get more info for " + search);
-        $.ajax({
-            type: "POST",
-            url: "/explore",
-            data: {'item': search},
-            success: function(data){
-                //console.log(data.LongDescription);
-                //$("#desc").html(data.LongDescription);
-            }
-        });
-    });
+    //send me art
     $("#send").click(function(){
         console.log("send me "+document.getElementById("sendme").value);
         $.ajax({
@@ -101,27 +140,17 @@ $(document).ready(function(){
             url: "/sendme",
             data: {'object': document.getElementById("sendme").value},
             success: function(data){
-                console.log(data.Filename);
-                
-                 // create image
-                 
-                 var img = new Image();
-
-                 // add src attribute                                   
-                 img.src = data.Filename;
-
-                 // when image is loaded, add it to div
-                 img.addEventListener("load", function(){
-                     document.getElementById("i").appendChild(this);
-                 });
-                //$("#desc").html(data.LongDescription);*/
-                  
+              console.log(data.Filename); //image link
+              var img = new Image();                                
+              img.src = data.Filename;
+              img.addEventListener("load", function(){
+              document.getElementById("i").appendChild(this);
+              });
         }
 
       });
 
     });
-
    
 });
 </script>
@@ -221,8 +250,11 @@ $(document).ready(function(){
     <p id="prov"></p>
     <p id="type"></p>
     <p id="religion"></p>
-    <input type="submit" class="" value="Explore" id="explore">
-    <p>hello</p>
+    <p>Know more about</p>
+    <div id="keywords"></div>
+    <div id="links"></div>
+    
+    
   
     <!--<input id="myFileInput" type="file" accept="image/*;capture=camera">-->
     <div class="container-0">
