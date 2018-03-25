@@ -1,8 +1,5 @@
-*.sql
-
 node_modules/
 data/
-CSMVS/
 js/
 
 
